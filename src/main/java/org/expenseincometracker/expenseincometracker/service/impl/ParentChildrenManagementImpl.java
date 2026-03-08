@@ -8,6 +8,7 @@ import org.expenseincometracker.expenseincometracker.enums.Role;
 import org.expenseincometracker.expenseincometracker.enums.UserStatus;
 import org.expenseincometracker.expenseincometracker.exception.BusinessException;
 import org.expenseincometracker.expenseincometracker.exception.NotFoundException;
+import org.expenseincometracker.expenseincometracker.helper.UserHelper;
 import org.expenseincometracker.expenseincometracker.repository.TransactionRepository;
 import org.expenseincometracker.expenseincometracker.repository.UserRepository;
 import org.expenseincometracker.expenseincometracker.service.ParentChildrenManagementService;
@@ -27,13 +28,12 @@ public class ParentChildrenManagementImpl implements ParentChildrenManagementSer
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TransactionRepository transactionRepository;
+    private final UserHelper userHelper;
 
     @Override
     public void createChild(CreateChildRequest request, Authentication authentication) {
 
-        String parentEmail = authentication.getName();
-        User parent = userRepository.findByEmail(parentEmail)
-                .orElseThrow(() -> new NotFoundException("Parent not found"));
+        User parent = userHelper.getAuthenticatedParent(authentication);
 
         if (parent.getRole() != Role.ROLE_PARENT) {
             throw new BusinessException("This user can't add children");
@@ -57,9 +57,7 @@ public class ParentChildrenManagementImpl implements ParentChildrenManagementSer
 
     @Override
     public List<ChildResponse> getChildren(Authentication authentication) {
-        String parentEmail = authentication.getName();
-        User parent = userRepository.findByEmail(parentEmail)
-                .orElseThrow(() -> new NotFoundException("Parent not found"));
+        User parent =userHelper.getAuthenticatedParent(authentication);
 
         List<User> children = userRepository.findByParentId(parent.getId());
 
@@ -79,9 +77,7 @@ public class ParentChildrenManagementImpl implements ParentChildrenManagementSer
     @Override
     @Transactional
     public void updateChildStatus(Long childId, Authentication authentication) {
-        String parentEmail = authentication.getName();
-        User parent = userRepository.findByEmail(parentEmail)
-                .orElseThrow(() -> new NotFoundException("Parent not found"));
+        User parent =userHelper.getAuthenticatedParent(authentication);
 
         User child = userRepository.findById(childId)
                 .orElseThrow(() -> new NotFoundException("Child not found"));

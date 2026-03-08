@@ -9,6 +9,8 @@ import org.expenseincometracker.expenseincometracker.entity.Wallet;
 import org.expenseincometracker.expenseincometracker.enums.Role;
 import org.expenseincometracker.expenseincometracker.exception.BusinessException;
 import org.expenseincometracker.expenseincometracker.exception.NotFoundException;
+import org.expenseincometracker.expenseincometracker.helper.UserHelper;
+import org.expenseincometracker.expenseincometracker.helper.WalletHelper;
 import org.expenseincometracker.expenseincometracker.repository.UserRepository;
 import org.expenseincometracker.expenseincometracker.repository.WalletRepository;
 import org.expenseincometracker.expenseincometracker.service.ParentWalletService;
@@ -24,15 +26,16 @@ import java.util.List;
 public class ParentWalletServiceImpl implements ParentWalletService {
 
     private final WalletRepository walletRepository;
-    private final UserRepository userRepository;
+    private final UserHelper userHelper;
+    private final WalletHelper walletHelper;
 
     @Override
     @Transactional
     public WalletResponse createWallet(CreateWalletRequest request, Authentication authentication) {
 
-        User parent = getAuthenticatedParent(authentication);
+        User parent = userHelper.getAuthenticatedParent(authentication);
 
-        List<User> children = resolveAndValidateChildren(request.childrenIds(), parent);
+        List<User> children = walletHelper.resolveAndValidateChildren(request.childrenIds(), parent);
 
         Wallet wallet = Wallet.builder()
                 .name(request.name())
@@ -50,7 +53,7 @@ public class ParentWalletServiceImpl implements ParentWalletService {
     @Transactional
     public WalletResponse updateWallet(Long walletId, UpdateWalletRequest request, Authentication authentication) {
 
-        User parent = getAuthenticatedParent(authentication);
+        User parent = userHelper.getAuthenticatedParent(authentication);
 
         Wallet wallet = walletRepository.findByIdAndOwnerId(walletId, parent.getId())
                 .orElseThrow(() -> new NotFoundException("Wallet not found or does not belong to you"));
@@ -71,7 +74,7 @@ public class ParentWalletServiceImpl implements ParentWalletService {
         }
 
         if (request.childrenIds() != null) {
-            List<User> children = resolveAndValidateChildren(request.childrenIds(), parent);
+            List<User> children = walletHelper.resolveAndValidateChildren(request.childrenIds(), parent);
             wallet.setAssignedChildren(children);
         }
 
@@ -83,7 +86,7 @@ public class ParentWalletServiceImpl implements ParentWalletService {
     @Transactional(readOnly = true)
     public List<WalletResponse> getParentWallets(Authentication authentication) {
 
-        User parent = getAuthenticatedParent(authentication);
+        User parent = userHelper.getAuthenticatedParent(authentication);
 
         List<Wallet> wallets = walletRepository.findAllByOwnerId(parent.getId());
 
@@ -96,43 +99,12 @@ public class ParentWalletServiceImpl implements ParentWalletService {
     @Transactional
     public void deleteWallet(Long walletId, Authentication authentication) {
 
-        User parent = getAuthenticatedParent(authentication);
+        User parent = userHelper.getAuthenticatedParent(authentication);
 
         Wallet wallet = walletRepository.findByIdAndOwnerId(walletId, parent.getId())
                 .orElseThrow(() -> new NotFoundException("Wallet not found or does not belong to you"));
 
         walletRepository.delete(wallet);
-    }
-
-    // ────────────────────────────── Helper methods ──────────────────────────────
-    private User getAuthenticatedParent(Authentication authentication) {
-        String email = authentication.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
-    }
-
-
-    private List<User> resolveAndValidateChildren(List<Long> childrenIds, User parent) {
-        if (childrenIds == null || childrenIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<User> children = userRepository.findAllById(childrenIds);
-
-        if (children.size() != childrenIds.size()) {
-            throw new NotFoundException("One or more child IDs are invalid");
-        }
-
-        for (User child : children) {
-            if (child.getRole() != Role.ROLE_CHILD) {
-                throw new BusinessException("User with ID " + child.getId() + " is not a child account");
-            }
-            if (child.getParent() == null || !child.getParent().getId().equals(parent.getId())) {
-                throw new BusinessException("Child with ID " + child.getId() + " does not belong to you");
-            }
-        }
-
-        return children;
     }
 
     private WalletResponse toWalletResponse(Wallet wallet) {

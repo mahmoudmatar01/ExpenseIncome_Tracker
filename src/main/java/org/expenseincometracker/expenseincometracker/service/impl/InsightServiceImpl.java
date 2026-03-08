@@ -2,10 +2,8 @@ package org.expenseincometracker.expenseincometracker.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.expenseincometracker.expenseincometracker.dto.response.*;
-import org.expenseincometracker.expenseincometracker.entity.User;
-import org.expenseincometracker.expenseincometracker.exception.NotFoundException;
+import org.expenseincometracker.expenseincometracker.helper.UserHelper;
 import org.expenseincometracker.expenseincometracker.repository.TransactionRepository;
-import org.expenseincometracker.expenseincometracker.repository.UserRepository;
 import org.expenseincometracker.expenseincometracker.service.InsightService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -23,11 +21,11 @@ import java.util.List;
 public class InsightServiceImpl implements InsightService {
 
     private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
+    private final UserHelper userHelper;
 
     @Override
     public OverviewResponse getOverview(Authentication authentication) {
-        Long parentId = getAuthenticatedParentId(authentication);
+        Long parentId = userHelper.getAuthenticatedParentId(authentication);
 
         BigDecimal averageMonthlySpending = transactionRepository.averageMonthlySpending(parentId);
         if (averageMonthlySpending == null) {
@@ -51,14 +49,14 @@ public class InsightServiceImpl implements InsightService {
 
     @Override
     public List<CategorySpendingResponse> getSpendingByCategory(Authentication authentication) {
-        Long parentId = getAuthenticatedParentId(authentication);
+        Long parentId = userHelper.getAuthenticatedParentId(authentication);
         return transactionRepository.spendingByCategory(parentId);
     }
 
 
     @Override
     public List<IncomeExpenseResponse> getIncomeVsExpense (Authentication authentication){
-        Long parentId = getAuthenticatedParentId(authentication);
+        Long parentId = userHelper.getAuthenticatedParentId(authentication);
         LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6).withDayOfMonth(1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
@@ -68,18 +66,9 @@ public class InsightServiceImpl implements InsightService {
 
     @Override
     public List<ChildSpendingResponse> getChildrenAnalysis (Authentication authentication){
-        Long parentId = getAuthenticatedParentId(authentication);
+        Long parentId = userHelper.getAuthenticatedParentId(authentication);
         return  transactionRepository.sumChildrenExpensesThisMonth(parentId);
     }
 
-
-
-    // ────────────────────────── Helper Methods ──────────────────────────
-    private Long getAuthenticatedParentId (Authentication authentication){
-        String email = authentication.getName();
-        User parent = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
-        return parent.getId();
-    }
 
 }
