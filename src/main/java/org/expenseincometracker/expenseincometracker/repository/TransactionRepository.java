@@ -221,8 +221,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             AVG(t.amount)
         )
         FROM Transaction t
+        WHERE t.createdAt >= :startDate
         GROUP BY YEAR(t.createdAt), MONTH(t.createdAt)
         ORDER BY YEAR(t.createdAt), MONTH(t.createdAt)
     """)
-    List<MonthlyTransactionVolumeResponse> getMonthlyTransactionVolume();
+    List<MonthlyTransactionVolumeResponse> findMonthlyTransactionVolumeSince(
+            @Param("startDate") LocalDateTime startDate
+    );
 }

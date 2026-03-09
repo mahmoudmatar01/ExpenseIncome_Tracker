@@ -14,7 +14,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -78,15 +83,73 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     }
 
     @Override
-    public List<MonthlyTransactionVolumeResponse> getMonthlyTransactionVolume() {
-        return transactionRepository.getMonthlyTransactionVolume();
-    }
+    public List<MonthlyTransactionVolumeResponse> getTransactionsVolumeLast12Months() {
 
+        LocalDateTime startDate = LocalDateTime.now().minusMonths(11);
+
+        List<MonthlyTransactionVolumeResponse> dbResults =
+                transactionRepository.findMonthlyTransactionVolumeSince(startDate);
+
+        Map<String, Double> dbMap = dbResults.stream()
+                .collect(Collectors.toMap(
+                        r -> r.year() + "-" + r.month(),
+                        MonthlyTransactionVolumeResponse::averageTransactionAmount
+                ));
+
+        List<MonthlyTransactionVolumeResponse> result = new ArrayList<>();
+
+        LocalDate current = LocalDate.now().minusMonths(11);
+
+        for(int i = 0; i < 12; i++){
+
+            int year = current.getYear();
+            int month = current.getMonthValue();
+
+            String key = year + "-" + month;
+
+            Double avgAmount = dbMap.getOrDefault(key, 0.0);
+
+            result.add(new MonthlyTransactionVolumeResponse(year, month, avgAmount));
+
+            current = current.plusMonths(1);
+        }
+
+        return result;
+    }
     @Override
     public List<MonthlyUserRegistrationResponse> getMonthlyUserRegistrations(){
         List<Role> roles= List.of(
                 Role.ROLE_PARENT,Role.ROLE_CHILD
         );
-        return userRepository.getMonthlyUserRegistrations(roles);
+        LocalDateTime startDate = LocalDateTime.now().minusMonths(11);
+
+        List<MonthlyUserRegistrationResponse> dbResults =
+                userRepository.findMonthlyUserRegistrationsSince(roles,startDate);
+
+        Map<String, Long> dbMap = dbResults.stream()
+                .collect(Collectors.toMap(
+                        r -> r.year() + "-" + r.month(),
+                        MonthlyUserRegistrationResponse::registrations
+                ));
+
+        List<MonthlyUserRegistrationResponse> result = new ArrayList<>();
+
+        LocalDate current = LocalDate.now().minusMonths(11);
+
+        for(int i = 0; i < 12; i++){
+
+            int year = current.getYear();
+            int month = current.getMonthValue();
+
+            String key = year + "-" + month;
+
+            Long count = dbMap.getOrDefault(key, 0L);
+
+            result.add(new MonthlyUserRegistrationResponse(year, month, count));
+
+            current = current.plusMonths(1);
+        }
+
+        return result;
     }
 }

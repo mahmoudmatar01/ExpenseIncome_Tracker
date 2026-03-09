@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,12 +91,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
             COUNT(u.id)
         )
         FROM User u
-        WHERE u.role IN (:roles)
+        WHERE u.createdAt >= :startDate
+        AND u.role IN (:roles) 
         GROUP BY YEAR(u.createdAt), MONTH(u.createdAt)
         ORDER BY YEAR(u.createdAt), MONTH(u.createdAt)
     """)
-    List<MonthlyUserRegistrationResponse> getMonthlyUserRegistrations(
-            @Param("roles") List<Role> roles
-            );
+    List<MonthlyUserRegistrationResponse> findMonthlyUserRegistrationsSince(
+            @Param("roles") List<Role> roles,
+            @Param("startDate") LocalDateTime startDate
+    );
 
 }

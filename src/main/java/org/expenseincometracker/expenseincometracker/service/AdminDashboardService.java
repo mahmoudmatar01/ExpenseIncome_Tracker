@@ -9,7 +9,7 @@ public interface AdminDashboardService {
     AdminDashboardResponse getDashboardStatistics();
     UserDistributionResponse getUserDistribution();
     Page<RecentUserResponse> getRecentUsers(int page, int size);
-    List<MonthlyTransactionVolumeResponse> getMonthlyTransactionVolume();
+    List<MonthlyTransactionVolumeResponse> getTransactionsVolumeLast12Months();
     List<MonthlyUserRegistrationResponse> getMonthlyUserRegistrations();
 }
 

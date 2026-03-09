@@ -54,7 +54,7 @@ public class AdminDashboardController {
     public ResponseEntity<?> getTransactionsVolume(){
         return ResponseEntity.ok(
                 ApiResponse.success(
-                        adminDashboardService.getMonthlyTransactionVolume()
+                        adminDashboardService.getTransactionsVolumeLast12Months()
                 )
         );
     }
