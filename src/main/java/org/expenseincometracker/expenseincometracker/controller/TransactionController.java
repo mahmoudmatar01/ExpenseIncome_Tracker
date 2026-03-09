@@ -6,9 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.expenseincometracker.expenseincometracker.dto.request.CreateTransactionRequest;
 import org.expenseincometracker.expenseincometracker.dto.response.ParentTransactionResponse;
-import org.expenseincometracker.expenseincometracker.dto.response.TransactionResponse;
 import org.expenseincometracker.expenseincometracker.entity.User;
-import org.expenseincometracker.expenseincometracker.enums.TransactionType;
 import org.expenseincometracker.expenseincometracker.repository.UserRepository;
 import org.expenseincometracker.expenseincometracker.service.TransactionService;
 import org.expenseincometracker.expenseincometracker.exception.ResourceNotFoundException;
@@ -17,21 +15,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasAnyRole('PARENT', 'CHILD')")
 @Tag(name = "Transaction Management", description = "APIs for managing expense or income transactions for by the authenticated parent or its children")
 public class TransactionController {
 
@@ -39,7 +32,6 @@ public class TransactionController {
     private final UserRepository userRepository;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('PARENT', 'CHILD')")
     public ResponseEntity<?> createTransaction(
             @Valid @RequestBody CreateTransactionRequest request,
             Authentication authentication) {
@@ -54,8 +46,7 @@ public class TransactionController {
         );
     }
 
-    @GetMapping("/parent")
-    @PreAuthorize("hasAnyRole('PARENT')")
+    @GetMapping
     public ResponseEntity<?> getTransactions(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page
@@ -66,8 +57,24 @@ public class TransactionController {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
         Page<ParentTransactionResponse> transactions =
-                transactionService.getParentTransactions(authentication, pageable);
+                transactionService.getUserTransactions(authentication, pageable);
         return ResponseEntity.ok(transactions);
     }
+
+    @GetMapping("/child")
+    public ResponseEntity<?> getChildTransactions(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        Pageable pageable = PageRequest.of(
+                page,
+                6,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+        Page<ParentTransactionResponse> transactions =
+                transactionService.getChildUserTransactions(authentication, pageable);
+        return ResponseEntity.ok(transactions);
+    }
+
 
 }

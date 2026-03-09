@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.expenseincometracker.expenseincometracker.dto.response.*;
-import org.expenseincometracker.expenseincometracker.service.InsightService;
+import org.expenseincometracker.expenseincometracker.service.ParentInsightService;
 import org.expenseincometracker.expenseincometracker.util.model.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,9 +23,9 @@ import java.util.List;
 @PreAuthorize("hasRole('PARENT')")
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Parent – Insights Analytics", description = "Analytics endpoints for parent spending overview, category breakdown, income vs expense, children analysis, and monthly trends")
-public class InsightController {
+public class ParentInsightController {
 
-    private final InsightService insightService;
+    private final ParentInsightService insightService;
 
 
     @GetMapping("/overview")
@@ -34,7 +34,7 @@ public class InsightController {
     public ResponseEntity<?> getOverview(
             Authentication authentication
     ) {
-        OverviewResponse response = insightService.getOverview(authentication);
+        ParentDashboardOverviewResponse response = insightService.getOverview(authentication);
         return ResponseEntity.ok(
                 ApiResponse.success(response)
         );

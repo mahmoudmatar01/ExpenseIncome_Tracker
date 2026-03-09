@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.expenseincometracker.expenseincometracker.dto.response.*;
 import org.expenseincometracker.expenseincometracker.helper.UserHelper;
 import org.expenseincometracker.expenseincometracker.repository.TransactionRepository;
-import org.expenseincometracker.expenseincometracker.service.InsightService;
+import org.expenseincometracker.expenseincometracker.service.ParentInsightService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,13 +18,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class InsightServiceImpl implements InsightService {
+public class ParentInsightServiceImpl implements ParentInsightService {
 
     private final TransactionRepository transactionRepository;
     private final UserHelper userHelper;
 
     @Override
-    public OverviewResponse getOverview(Authentication authentication) {
+    public ParentDashboardOverviewResponse getOverview(Authentication authentication) {
         Long parentId = userHelper.getAuthenticatedParentId(authentication);
 
         BigDecimal averageMonthlySpending = transactionRepository.averageMonthlySpending(parentId);
@@ -43,7 +43,7 @@ public class InsightServiceImpl implements InsightService {
             totalChildrenSpending = BigDecimal.ZERO;
         }
 
-        return new OverviewResponse(averageMonthlySpending, topCategory, totalChildrenSpending);
+        return new ParentDashboardOverviewResponse(averageMonthlySpending, topCategory, totalChildrenSpending);
     }
 
 

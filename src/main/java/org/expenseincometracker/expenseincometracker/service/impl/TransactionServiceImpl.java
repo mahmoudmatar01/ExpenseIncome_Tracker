@@ -80,12 +80,21 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<ParentTransactionResponse> getParentTransactions(
+    public Page<ParentTransactionResponse> getUserTransactions(
             Authentication authentication,
             Pageable pageable
     ) {
         Long parentId = userHelper.getAuthenticatedParentId(authentication);
-        return transactionRepository.findParentTransactions(parentId, pageable);
+        return transactionRepository.findByUserId(parentId, pageable);
+    }
+
+    @Override
+    public Page<ParentTransactionResponse> getChildUserTransactions(
+            Authentication authentication,
+            Pageable pageable
+    ) {
+        Long parentId = userHelper.getAuthenticatedParentId(authentication);
+        return transactionRepository.findByChildId(parentId, pageable);
     }
 
     private TransactionResponse mapToResponse(Transaction transaction) {

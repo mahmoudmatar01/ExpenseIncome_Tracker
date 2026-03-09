@@ -1,10 +1,7 @@
 package org.expenseincometracker.expenseincometracker.repository;
 
-import org.expenseincometracker.expenseincometracker.dto.response.ParentTransactionResponse;
+import org.expenseincometracker.expenseincometracker.dto.response.*;
 import org.expenseincometracker.expenseincometracker.entity.Transaction;
-import org.expenseincometracker.expenseincometracker.dto.response.CategorySpendingResponse;
-import org.expenseincometracker.expenseincometracker.dto.response.ChildSpendingResponse;
-import org.expenseincometracker.expenseincometracker.dto.response.IncomeExpenseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -97,6 +94,18 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         """)
     List<CategorySpendingResponse> spendingByCategory(@Param("parentId") Long parentId);
 
+        @Query("""
+            SELECT new org.expenseincometracker.expenseincometracker.dto.response.CategorySpendingResponse(
+                c.name,
+                SUM(t.amount)
+            )
+            FROM Transaction t
+            JOIN t.category c
+            WHERE t.createdBy.id = :userId
+            AND t.type = org.expenseincometracker.expenseincometracker.enums.TransactionType.EXPENSE
+            GROUP BY c.name
+            """)
+    List<CategorySpendingResponse> getChildSpendingByCategory(Long userId);
 
     @Query("""
             SELECT new org.expenseincometracker.expenseincometracker.dto.response.IncomeExpenseResponse(
@@ -144,8 +153,35 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
        WHERE w.owner.id = :parentId
        ORDER BY t.createdAt DESC
        """)
-    Page<ParentTransactionResponse> findParentTransactions(
-            @Param("parentId") Long parentId,
+    Page<ParentTransactionResponse> findByUserId(
+            @Param("parentId") Long userId,
             Pageable pageable
     );
+
+    @Query("""
+       SELECT new org.expenseincometracker.expenseincometracker.dto.response.ParentTransactionResponse(
+           t.createdAt,
+           t.category.name,
+           t.wallet.name,
+           t.type,
+           t.amount
+       )
+       FROM Transaction t
+       WHERE t.createdBy.id = :childId
+       ORDER BY t.createdAt DESC
+       """)
+    Page<ParentTransactionResponse> findByChildId(
+            @Param("childId") Long childId,
+            Pageable pageable
+    );
+
+    @Query("""
+       SELECT sum (
+       t.amount
+       )
+       FROM Transaction t
+       WHERE t.createdBy.id = :createdById
+       """)
+    BigDecimal getTotalAmountByCreatedBy_Id(Long createdById);
+
 }
