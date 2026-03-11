@@ -10,5 +10,6 @@ public record ParentTransactionResponse(
         String category,
         String wallet,
         TransactionType type,
-        BigDecimal amount
+        BigDecimal amount,
+        String description
 ) {}

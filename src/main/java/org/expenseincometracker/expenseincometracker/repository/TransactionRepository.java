@@ -146,7 +146,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
            c.name,
            w.name,
            t.type,
-           t.amount
+           t.amount,
+           t.description
        )
        FROM Transaction t
        JOIN t.wallet w
@@ -165,7 +166,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
            t.category.name,
            t.wallet.name,
            t.type,
-           t.amount
+           t.amount,
+           t.description
        )
        FROM Transaction t
        WHERE t.createdBy.id = :childId
