@@ -56,7 +56,15 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user.getUsername());
 
-        return new AuthResponse(accessToken, refreshToken.getToken());
+        return new AuthResponse(
+                accessToken,
+                refreshToken.getToken(),
+                Role.valueOf(user.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority())
+        );
+
     }
 
     @Override

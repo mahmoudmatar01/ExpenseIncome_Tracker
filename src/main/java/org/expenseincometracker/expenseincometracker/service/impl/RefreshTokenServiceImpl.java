@@ -6,6 +6,7 @@ import org.expenseincometracker.expenseincometracker.dto.request.RefreshTokenReq
 import org.expenseincometracker.expenseincometracker.dto.response.AuthResponse;
 import org.expenseincometracker.expenseincometracker.entity.RefreshToken;
 import org.expenseincometracker.expenseincometracker.entity.User;
+import org.expenseincometracker.expenseincometracker.enums.Role;
 import org.expenseincometracker.expenseincometracker.exception.BusinessException;
 import org.expenseincometracker.expenseincometracker.exception.NotFoundException;
 import org.expenseincometracker.expenseincometracker.repository.RefreshTokenRepository;
@@ -68,8 +69,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                             jwtService.generateToken(userDetails);
                     return new AuthResponse(
                                     accessToken,
-                                    requestToken
-                            );
+                                    requestToken,
+                                    user.getRole()
+                    );
                 })
                 .orElseThrow(() ->
                         new BusinessException("Refresh token not found")
