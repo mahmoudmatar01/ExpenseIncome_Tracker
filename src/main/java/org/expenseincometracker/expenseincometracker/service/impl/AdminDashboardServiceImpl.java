@@ -34,7 +34,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 Role.ROLE_PARENT,
                 Role.ROLE_CHILD
         );
-        long totalUsers = userRepository.countParentAndChildrenUsers(roles);
+        long totalUsers = userRepository.countByRoleIn(roles);
 
         long activeChildren =
                 userRepository.countByRoleAndStatus(Role.ROLE_CHILD, UserStatus.ACTIVE);
