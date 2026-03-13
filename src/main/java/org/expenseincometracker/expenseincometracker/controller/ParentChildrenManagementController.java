@@ -34,10 +34,14 @@ public class ParentChildrenManagementController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getChildren(Authentication authentication) {
+    public ResponseEntity<?> getChildren(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
         return ResponseEntity.ok(
                 ApiResponse.success(
-                parentService.getChildren(authentication)
+                parentService.getChildren(page,size,authentication)
         )
         );
     }

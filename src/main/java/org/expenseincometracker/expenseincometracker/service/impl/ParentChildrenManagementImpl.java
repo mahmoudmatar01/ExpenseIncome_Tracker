@@ -12,6 +12,9 @@ import org.expenseincometracker.expenseincometracker.helper.UserHelper;
 import org.expenseincometracker.expenseincometracker.repository.TransactionRepository;
 import org.expenseincometracker.expenseincometracker.repository.UserRepository;
 import org.expenseincometracker.expenseincometracker.service.ParentChildrenManagementService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -56,10 +59,11 @@ public class ParentChildrenManagementImpl implements ParentChildrenManagementSer
     }
 
     @Override
-    public List<ChildResponse> getChildren(Authentication authentication) {
+    public List<ChildResponse> getChildren(int page,int size,Authentication authentication) {
         User parent =userHelper.getAuthenticatedUser(authentication);
 
-        List<User> children = userRepository.findByParentId(parent.getId());
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> children = userRepository.findByParentId(parent.getId(), pageable);
 
         return children.stream().map(child -> {
             BigDecimal spent = transactionRepository.sumChildExpensesThisMonth(child.getId());

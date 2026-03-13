@@ -24,7 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
     boolean existsByEmail(@NotBlank String email);
-    List<User> findByParentId(Long parentId);
+    Page<User> findByParentId(Long parentId, Pageable pageable);
+
     @Query("""
         SELECT new org.expenseincometracker.expenseincometracker.dto.response.UserResponse(
             u.id,
