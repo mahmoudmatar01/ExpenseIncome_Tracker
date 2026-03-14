@@ -39,11 +39,19 @@ public class ChildrenInsightServiceImpl implements ChildrenInsightService {
         BigDecimal totalSpent =
                 transactionRepository.getTotalAmountByCreatedBy_Id(child.getId());
 
-        BigDecimal remaining = child.getSpendingLimit().subtract(totalSpent);
+        if (totalSpent == null) {
+            totalSpent = BigDecimal.ZERO;
+        }
+
+        BigDecimal spendingLimit = child.getSpendingLimit() != null
+                ? child.getSpendingLimit()
+                : BigDecimal.ZERO;
+
+        BigDecimal remaining = spendingLimit.subtract(totalSpent);
 
         return new ChildDashboardOverviewResponse(
                 wallet.getBalance(),
-                child.getSpendingLimit(),
+                spendingLimit,
                 totalSpent,
                 remaining
         );

@@ -181,13 +181,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     );
 
     @Query("""
-       SELECT sum (
-       t.amount
-       )
-       FROM Transaction t
-       WHERE t.createdBy.id = :createdById
-       """)
-    BigDecimal getTotalAmountByCreatedBy_Id(Long createdById);
+        SELECT COALESCE(SUM(t.amount),0)
+        FROM Transaction t
+        WHERE t.createdBy.id = :childId
+    """)
+    BigDecimal getTotalAmountByCreatedBy_Id(@Param("childId") Long childId);
+
 
     @Query("""
         SELECT new org.expenseincometracker.expenseincometracker.dto.response.AdminTransactionResponse(
