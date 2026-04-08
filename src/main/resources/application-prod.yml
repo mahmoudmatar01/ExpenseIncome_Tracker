@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://gondola.proxy.rlwy.net:23750/railway?sslmode=require
+    url: jdbc:postgresql://maglev.proxy.rlwy.net:21978/railway?sslmode=require
     username: postgres
-    password: enyqbzuBAclMLabLUVwWWOBwOBxQocAy
+    password: QbALmMzDmOAYzbPZYxRayOnbhuVqAcvY
     driver-class-name: org.postgresql.Driver
 
   jpa:
